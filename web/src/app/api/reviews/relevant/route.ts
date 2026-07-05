@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
 import { jsonDataPath } from "@/lib/dataset";
 import { loadDiscoveryDataset, persistDiscoveryDataset } from "@/lib/persistence";
+import { runDiscoveryEtl } from "@/lib/etl/discovery-etl";
 import { parseUploadedJson } from "@/lib/normalize";
 
 export const runtime = "nodejs";
@@ -14,6 +15,23 @@ export async function GET() {
       const raw = await readFile(jsonDataPath(), "utf-8");
       const json = JSON.parse(raw);
       const parsed = parseUploadedJson(json);
+      const etl = runDiscoveryEtl(parsed.reviews);
+
+      if (process.env.VERCEL) {
+        return NextResponse.json({
+          ok: true,
+          total: etl.relevant.length,
+          reviews: etl.relevant,
+          meta: {
+            etl_at: etl.etlAt,
+            total_input: etl.totalInput,
+            total_relevant: etl.totalRelevant,
+            excluded: etl.excluded,
+            sources: etl.sources,
+          },
+        });
+      }
+
       await persistDiscoveryDataset(parsed.reviews);
       data = await loadDiscoveryDataset();
     }

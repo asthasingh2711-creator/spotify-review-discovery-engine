@@ -6,6 +6,15 @@ import { formatLlmError } from "@/services/analysis/llm";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+async function saveAnalysis(payload: Parameters<typeof persistAnalysisResult>[0]) {
+  try {
+    await persistAnalysisResult(payload);
+  } catch (err) {
+    // On Vercel, analysis is still returned in the API response even if /tmp write fails.
+    console.warn("persistAnalysisResult failed:", err);
+  }
+}
+
 function sseEncode(event: AnalysisProgressEvent | Record<string, unknown>) {
   return `data: ${JSON.stringify(event)}\n\n`;
 }
@@ -28,7 +37,7 @@ export async function POST(req: Request) {
 
     if (!wantsStream) {
       const result = await runAnalysis(reviews, {});
-      await persistAnalysisResult({
+      await saveAnalysis({
         report: result.report,
         warnings: result.warnings,
         runId: result.runId,
@@ -57,7 +66,7 @@ export async function POST(req: Request) {
               if (e.type !== "done") send(e);
             },
           });
-          await persistAnalysisResult({
+          await saveAnalysis({
             report: result.report,
             warnings: result.warnings,
             runId: result.runId,

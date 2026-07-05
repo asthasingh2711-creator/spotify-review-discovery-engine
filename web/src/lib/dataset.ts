@@ -1,16 +1,16 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { mergeEntries, type AnyEntry } from "@/lib/mergeEntries";
-import { dataDir } from "@/lib/data-dir";
+import { bundledDataDir, dataDir } from "@/lib/data-dir";
 
-export { dataDir };
+export { bundledDataDir, dataDir };
 
 export function jsonDataPath() {
-  return path.join(dataDir(), "reviews_discussions.json");
+  return path.join(bundledDataDir(), "reviews_discussions.json");
 }
 
 export function csvDataPath() {
-  return path.join(dataDir(), "reviews_discussions.csv");
+  return path.join(bundledDataDir(), "reviews_discussions.csv");
 }
 
 function parseCsvLine(line: string): string[] {

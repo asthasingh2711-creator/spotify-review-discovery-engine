@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 export type IntermediateRunMeta = {
@@ -10,6 +11,9 @@ export type IntermediateRunMeta = {
 };
 
 function intermediateRoot() {
+  if (process.env.VERCEL) {
+    return path.join(os.tmpdir(), "nl-spotify-intermediate");
+  }
   return path.resolve(process.cwd(), "..", "data", "analysis", "intermediate");
 }
 
