@@ -475,9 +475,6 @@ function ReviewsSection({
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-foreground font-bold">Dataset</CardTitle>
-            <div className="text-sm text-muted-foreground mt-1">
-              Loaded from <code className="spotify-code">data/reviews_discussions.json</code>. Refresh appends latest scrape.
-            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" className="rounded-full border-border" disabled={isRefreshing || isRestoring} onClick={onRestore}>
@@ -714,10 +711,6 @@ function RelevantReviewsSection({
                 small
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              ETL runs when you refresh or restore the full dataset. Stored in{" "}
-              <code className="spotify-code">data/reviews_discovery.json</code>.
-            </p>
           </CardContent>
         </Card>
       </ScrollReveal>
