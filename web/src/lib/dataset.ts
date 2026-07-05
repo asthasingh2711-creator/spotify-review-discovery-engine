@@ -1,10 +1,9 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { mergeEntries, type AnyEntry } from "@/lib/mergeEntries";
+import { dataDir } from "@/lib/data-dir";
 
-export function dataDir() {
-  return path.resolve(process.cwd(), "..", "data");
-}
+export { dataDir };
 
 export function jsonDataPath() {
   return path.join(dataDir(), "reviews_discussions.json");

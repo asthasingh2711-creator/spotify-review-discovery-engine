@@ -2,11 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseUploadedJson } from "@/lib/normalize";
 import { runDiscoveryEtl } from "@/lib/etl/discovery-etl";
+import { dataDir } from "@/lib/data-dir";
 import type { NormalizedReview } from "@/types/reviews";
-
-function dataDir() {
-  return path.resolve(process.cwd(), "..", "data");
-}
 
 export function discoveryDataPath() {
   return path.join(dataDir(), "reviews_discovery.json");

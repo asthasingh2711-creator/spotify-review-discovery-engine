@@ -1,0 +1,11 @@
+{
+  "name": "spotify-review-discovery-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spotify Review Discovery Engine — Next.js dashboard in web/",
+  "scripts": {
+    "build": "cd web && npm ci && npm run build",
+    "dev": "cd web && npm run dev",
+    "start": "cd web && npm start"
+  }
+}

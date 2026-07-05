@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Bundle parent data/ with serverless API routes on Vercel (root directory = web).
+  // Data is copied into web/data before build (see scripts/sync-data.mjs).
   outputFileTracingIncludes: {
-    "/api/**/*": ["../data/**/*"],
+    "/api/**/*": ["./data/**/*"],
   },
 };
 

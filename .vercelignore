@@ -1,0 +1,6 @@
+.venv
+app
+scraper
+run.sh
+export_csv.py
+requirements.txt
