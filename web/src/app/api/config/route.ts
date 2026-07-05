@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
-import { getActiveModelName, getLlmProvider, isLlmConfigured } from "@/services/llm/provider";
+import {
+  getActiveModelName,
+  getAvailableProviders,
+  getLlmProvider,
+  isLlmConfigured,
+} from "@/services/llm/provider";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const provider = getLlmProvider();
+  const available = getAvailableProviders();
+  const primary = getLlmProvider();
   return NextResponse.json({
     ok: true,
     llmConfigured: isLlmConfigured(),
-    llmProvider: provider,
+    llmProvider: primary,
+    llmProviders: available,
+    llmFallbackAvailable: available.length > 1,
     cerebrasConfigured: isLlmConfigured(),
     refreshAvailable: !process.env.VERCEL,
-    model: getActiveModelName() ?? "not configured",
+    model: getActiveModelName(primary) ?? "not configured",
   });
 }

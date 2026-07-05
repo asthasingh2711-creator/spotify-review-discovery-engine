@@ -338,7 +338,7 @@ export function buildOfflineReport(reviews: NormalizedReview[], overview: PMRepo
 
 export function runOfflineAnalysis(
   reviews: NormalizedReview[],
-  opts: { totalLoaded?: number; onProgress?: (message: string) => void } = {},
+  opts: { totalLoaded?: number; onProgress?: (message: string) => void; reason?: string } = {},
 ): { report: PMReport; warnings: string[] } {
   opts.onProgress?.("Synthesizing Product Intelligence across discovery dataset...");
 
@@ -361,7 +361,9 @@ export function runOfflineAnalysis(
 
   const warnings = [
     `Product Intelligence synthesized from all ${cleaned.length} discovery-relevant reviews.`,
-    "Cerebras quota unavailable — report generated via evidence-weighted narrative engine (re-run with AI when quota resets for additional depth).",
+    opts.reason
+      ? `${opts.reason} — report generated via evidence-weighted narrative engine (no AI). Re-run when LLM quota resets.`
+      : "LLM unavailable — report generated via evidence-weighted narrative engine (no AI). Re-run when API quota resets for AI-generated insights.",
   ];
 
   return { report, warnings };

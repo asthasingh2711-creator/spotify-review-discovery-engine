@@ -7,7 +7,7 @@ import { aggregateBatches } from "@/services/analysis/aggregate";
 import { BatchReportSchema, type BatchReport } from "@/services/analysis/batch-schema";
 import { reviewsToText } from "@/services/analysis/chunk";
 import { safeJsonParse, LlmQuotaError } from "@/services/analysis/llm";
-import { callLlmWithRetry, getActiveModelName, getLlmProvider } from "@/services/llm/provider";
+import { callLlmWithRetry, getActiveModelName, getAvailableProviders } from "@/services/llm/provider";
 import { buildProgrammaticStats } from "@/services/analysis/programmatic-stats";
 import { EXTRACTION_RESPONSE_FORMAT } from "@/services/analysis/extraction-schema";
 import { normalizeBatchReport } from "@/services/analysis/normalize-batch";
@@ -143,11 +143,12 @@ export async function runAnalysis(
     if (err instanceof LlmQuotaError) {
       onProgress?.({
         type: "status",
-        message: "Cerebras quota reached — switching to offline analysis...",
+        message: `LLM quota exhausted (${getAvailableProviders().join(" → ")}) — switching to offline analysis...`,
       });
       const { report, warnings } = runOfflineAnalysis(cleaned, {
         totalLoaded,
         onProgress: (message) => onProgress?.({ type: "status", message }),
+        reason: "All configured LLM providers hit quota limits",
       });
       const out: AnalyzeResponse = { report, warnings, scope };
       onProgress?.({ type: "done", data: out, runId });
@@ -168,8 +169,8 @@ async function runLlmAnalysis(
 ): Promise<AnalyzeResponse & { runId: string }> {
   const { onProgress, runId, scope, totalLoaded } = ctx;
   const warnings: string[] = [];
-  const provider = getLlmProvider() ?? "gemini";
-  const model = getActiveModelName() ?? "gemini-2.0-flash";
+  const providers = getAvailableProviders();
+  const primaryProvider = providers[0] ?? "gemini";
 
   const programmatic = buildProgrammaticStats(cleaned);
   const sentimentFallback = {
@@ -181,7 +182,7 @@ async function runLlmAnalysis(
 
   onProgress?.({
     type: "status",
-    message: `Exactly 2 ${provider} API calls (${model}): sample ${sample.length}/${cleaned.length} reviews → extract + synthesize.`,
+    message: `Exactly 2 AI API calls (${providers.join(" → ")}): sample ${sample.length}/${cleaned.length} reviews → extract + synthesize.`,
   });
 
   onProgress?.({ type: "status", message: `Call 1/2 — extracting patterns...` });
@@ -189,7 +190,7 @@ async function runLlmAnalysis(
 
   const sampleText = sample.map((r) => reviewsToText(r, BODY_CHARS)).join("\n---\n");
 
-  const extractionText = await callLlmWithRetry(
+  const extraction = await callLlmWithRetry(
     [
       { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
       {
@@ -205,7 +206,13 @@ async function runLlmAnalysis(
     },
   );
 
-  const extractionParsed = parseBatchReport(extractionText, { sentimentFallback });
+  if (extraction.provider !== primaryProvider) {
+    warnings.push(
+      `${primaryProvider} quota limit hit — call 1 used ${extraction.provider} (${getActiveModelName(extraction.provider)}).`,
+    );
+  }
+
+  const extractionParsed = parseBatchReport(extraction.text, { sentimentFallback });
 
   if (!extractionParsed?.success) {
     const detail = extractionParsed?.error?.issues?.[0]?.message ?? "invalid JSON schema";
@@ -215,6 +222,7 @@ async function runLlmAnalysis(
     const { report, warnings: offlineWarnings } = runOfflineAnalysis(cleaned, {
       totalLoaded,
       onProgress: (message) => onProgress?.({ type: "status", message }),
+      reason: `Call 1 (${extraction.provider}) returned invalid JSON`,
     });
     const out: AnalyzeResponse = { report, warnings: [...warnings, ...offlineWarnings], scope };
     onProgress?.({ type: "done", data: out, runId });
@@ -238,7 +246,7 @@ async function runLlmAnalysis(
   onProgress?.({ type: "chunk", current: 2, total: 2, message: "Synthesizing PM intelligence..." });
 
   const synthesisInput = buildSynthesisInput(aggregated, overview, programmatic);
-  const synthesisText = await callLlmWithRetry(
+  const synthesis = await callLlmWithRetry(
     [
       { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
       {
@@ -254,7 +262,13 @@ async function runLlmAnalysis(
     },
   );
 
-  const synthesisParsed = parseBatchReport(synthesisText, { sentimentFallback });
+  if (synthesis.provider !== extraction.provider) {
+    warnings.push(
+      `${extraction.provider} quota limit hit — call 2 used ${synthesis.provider} (${getActiveModelName(synthesis.provider)}).`,
+    );
+  }
+
+  const synthesisParsed = parseBatchReport(synthesis.text, { sentimentFallback });
   const synthesisOk = synthesisParsed?.success === true;
 
   let baseReport: PMReport;
