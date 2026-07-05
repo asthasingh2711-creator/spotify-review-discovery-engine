@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify Reviews &amp; Discussions</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div>
+        <h1>Spotify Reviews &amp; Discussions</h1>
+        <p class="subtitle">Raw scraped data · 2025 – 19 Jun 2026 · No analysis</p>
+      </div>
+      <div class="header-actions">
+        <a href="/api/download/csv" class="btn btn-ghost">↓ CSV</a>
+        <a href="/api/download/json" class="btn btn-ghost">↓ JSON</a>
+        <button id="refreshBtn" class="btn btn-primary">↻ Refresh data</button>
+        <span id="refreshStatus" class="status-pill">Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="meta-bar">
+      <div class="meta-item"><span class="label">Last scraped</span><span id="scrapedAt">—</span></div>
+      <div class="meta-item"><span class="label">Date range</span><span id="dateRange">—</span></div>
+      <div class="meta-item"><span class="label">Total entries</span><span id="totalEntries">0</span></div>
+      <div class="meta-item"><span class="label">Showing</span><span id="showingCount">0</span></div>
+    </section>
+
+    <section class="source-chips" id="sourceChips"></section>
+
+    <section class="filters">
+      <input type="search" id="searchInput" placeholder="Search title, text, author..." />
+      <select id="sourceFilter">
+        <option value="">All sources</option>
+        <option value="Reddit">Reddit</option>
+        <option value="App Store">App Store</option>
+        <option value="Play Store">Play Store</option>
+        <option value="Spotify Community">Spotify Community</option>
+      </select>
+      <select id="typeFilter">
+        <option value="">All types</option>
+        <option value="review">Review</option>
+        <option value="discussion">Discussion</option>
+        <option value="comment">Comment</option>
+      </select>
+      <select id="perPage">
+        <option value="25">25 / page</option>
+        <option value="50" selected>50 / page</option>
+        <option value="100">100 / page</option>
+      </select>
+    </section>
+
+    <section id="errorsBox" class="errors-box hidden"></section>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Source</th>
+            <th>Type</th>
+            <th>Rating</th>
+            <th>Title</th>
+            <th>Text</th>
+            <th>Author</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="8" class="empty">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="pagination">
+      <button id="prevBtn" class="btn btn-ghost" disabled>← Previous</button>
+      <span id="pageInfo">Page 1</span>
+      <button id="nextBtn" class="btn btn-ghost" disabled>Next →</button>
+    </nav>
+  </main>
+
+  <footer class="footer">
+    <p>Sources: Reddit · Apple App Store · Google Play Store · Spotify Community Forums</p>
+    <p class="note">The existing <em>Spotify — Reviews &amp; Discussions Digest</em> canvas is preserved separately.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

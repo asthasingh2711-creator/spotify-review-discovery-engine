@@ -1,0 +1,369 @@
+{
+  "report": {
+    "overview": {
+      "totalReviewsAnalyzed": 801,
+      "sources": {
+        "Play Store": 96,
+        "App Store": 95,
+        "Spotify Community": 4,
+        "Reddit": 606
+      },
+      "scope": "discovery",
+      "totalLoaded": 801
+    },
+    "sentiment": {
+      "positive": 19,
+      "neutral": 13,
+      "negative": 69
+    },
+    "themes": [
+      {
+        "theme": "Free-Tier Discovery Friction",
+        "description": "The restriction of song selection and forced shuffle for free users is perceived as a barrier to intentional music exploration.",
+        "frequency": 15,
+        "representativeQuotes": [
+          {
+            "quote": "Whenever I search for a specific song, it forces me to listen to a whole playlist instead of that song.",
+            "source": "Play Store"
+          },
+          {
+            "quote": "you can't play the SONGS IN ORDER... choosing should be a basic feature.",
+            "source": "Play Store"
+          }
+        ]
+      },
+      {
+        "theme": "The Shuffle Paradox",
+        "description": "Users perceive the shuffle algorithm as non-random, frequently repeating a small subset of songs while ignoring the rest of the library.",
+        "frequency": 12,
+        "representativeQuotes": [
+          {
+            "quote": "I have playlist with over 140 songs and I constantly only here maybe 30 of them. Same 30 over and over when shuffle play is on.",
+            "source": "App Store"
+          },
+          {
+            "quote": "Shuffling a playlist isn’t shuffling a playlist when it’s the same songs in the same order it’s just Spotifys order.",
+            "source": "App Store"
+          }
+        ]
+      },
+      {
+        "theme": "Intrusive Discovery",
+        "description": "Frustration with 'Smart Shuffle' and AI DJ inserting songs that don't match the user's current intent or taste, often feeling like promotional filler.",
+        "frequency": 8,
+        "representativeQuotes": [
+          {
+            "quote": "Smart shuffle ruined Spotify because you can’t listen to the songs you want without going back to the app and changing it yourself",
+            "source": "App Store"
+          },
+          {
+            "quote": "Radio option has become so unusable because of 'promotional tool for artists' which increases likelihood of trash songs bring recommended.",
+            "source": "Play Store"
+          }
+        ]
+      },
+      {
+        "theme": "Recommendation Echo Chambers",
+        "description": "A feeling that discovery has stagnated, with AI recommendations becoming too safe and based solely on historical data, eliminating serendipity.",
+        "frequency": 7,
+        "representativeQuotes": [
+          {
+            "quote": "homepage is full of AI made playlists and recommendations but they are all based on my history and liked songs. I want to Listen something new but there is no way unless I know a few songs myself. no novelty.",
+            "source": "Play Store"
+          },
+          {
+            "quote": "the “for you” playlists are tired, overplayed and the exact same music regardless of whether your working, doing the DJ function, running, pool party.",
+            "source": "App Store"
+          }
+        ]
+      }
+    ],
+    "jtbds": [
+      {
+        "job": "Trust the shuffle to be truly random",
+        "frequency": 10,
+        "examples": [
+          {
+            "quote": "I want to hear all the songs in my 100+ song playlist, not just the same 20"
+          },
+          {
+            "quote": "I want a shuffle that doesn't feel like a pre-set order"
+          }
+        ]
+      },
+      {
+        "job": "Break out of my musical bubble",
+        "frequency": 6,
+        "examples": [
+          {
+            "quote": "I want to find something truly new, not just something similar to what I already like"
+          },
+          {
+            "quote": "I want to discover artists I wouldn't normally find"
+          }
+        ]
+      },
+      {
+        "job": "Control the AI's influence on my mood",
+        "frequency": 5,
+        "examples": [
+          {
+            "quote": "I want the DJ to stop playing a genre I've repeatedly skipped"
+          },
+          {
+            "quote": "I want my 'For You' mix to change based on whether I'm working or partying"
+          }
+        ]
+      }
+    ],
+    "painPoints": [
+      {
+        "painPoint": "Repetitive Shuffle (The 'Same 30' Problem)",
+        "frequency": 12,
+        "representativeQuotes": [
+          {
+            "quote": "Shuffle repeats the same songs"
+          },
+          {
+            "quote": "random shuffle is a lie it plays the same songs over and over constantly"
+          }
+        ]
+      },
+      {
+        "painPoint": "Lack of Novelty in Recommendations",
+        "frequency": 7,
+        "representativeQuotes": [
+          {
+            "quote": "no novelty"
+          },
+          {
+            "quote": "the “for you” playlists are tired, overplayed"
+          }
+        ]
+      },
+      {
+        "painPoint": "AI DJ Genre Misalignment",
+        "frequency": 3,
+        "representativeQuotes": [
+          {
+            "quote": "The DJ keeps playing Latin music despite me never listening to it and skipping it"
+          }
+        ]
+      }
+    ],
+    "rootCauses": [
+      {
+        "complaint": "Shuffle plays the same songs repeatedly.",
+        "inferredRootCause": "The algorithm likely prioritizes 'high-affinity' tracks (songs the user has liked or played most) to maximize short-term retention, which users perceive as a failure of randomness.",
+        "evidenceQuotes": [
+          {
+            "quote": "I have playlist with over 140 songs and I constantly only here maybe 30 of them."
+          }
+        ],
+        "confidence": 0.9
+      },
+      {
+        "complaint": "Recommendations feel repetitive and lack novelty.",
+        "inferredRootCause": "Over-reliance on collaborative filtering (users who liked X also liked Y) creates a feedback loop that reinforces existing tastes rather than exploring distant but relevant musical clusters.",
+        "evidenceQuotes": [
+          {
+            "quote": "recommendations... are all based on my history and liked songs. I want to Listen something new"
+          }
+        ],
+        "confidence": 0.85
+      },
+      {
+        "complaint": "AI DJ ignores skips and plays unwanted genres.",
+        "inferredRootCause": "The AI DJ's 'genre-cluster' weighting is too strong, overriding real-time negative signals (skips) in favor of a perceived user persona.",
+        "evidenceQuotes": [
+          {
+            "quote": "The DJ keeps playing Latin music despite me never listening to it and skipping it"
+          }
+        ],
+        "confidence": 0.7
+      }
+    ],
+    "segments": [
+      {
+        "segment": "The Free-Tier Struggler",
+        "description": "Users whose discovery journey is interrupted by forced shuffle and limited skips.",
+        "estimatedShare": 0.35,
+        "keyThemes": [
+          "Access",
+          "Frustration",
+          "Forced Discovery"
+        ],
+        "representativeQuotes": [
+          {
+            "quote": "Whenever I search for a specific song, it forces me to listen to a whole playlist instead of that song."
+          }
+        ]
+      },
+      {
+        "segment": "The Comfort Listener",
+        "description": "Users who rely on their own curated playlists and feel 'Smart Shuffle' is an intrusion on their curation.",
+        "estimatedShare": 0.3,
+        "keyThemes": [
+          "Control",
+          "Curation",
+          "Predictability"
+        ],
+        "representativeQuotes": [
+          {
+            "quote": "Smart shuffle ruined Spotify because you can’t listen to the songs you want"
+          }
+        ]
+      },
+      {
+        "segment": "The Explorer",
+        "description": "Users who actively seek new music and feel stifled by the 'safe' nature of current AI recommendations.",
+        "estimatedShare": 0.2,
+        "keyThemes": [
+          "Novelty",
+          "Serendipity",
+          "Anti-Bubble"
+        ],
+        "representativeQuotes": [
+          {
+            "quote": "I want to Listen something new but there is no way unless I know a few songs myself."
+          }
+        ]
+      },
+      {
+        "segment": "The Algorithm Skeptic",
+        "description": "Power users who notice the 'promotional' nature of recommendations and feel the product is prioritizing labels over taste.",
+        "estimatedShare": 0.15,
+        "keyThemes": [
+          "Transparency",
+          "Promotional Bias",
+          "Quality"
+        ],
+        "representativeQuotes": [
+          {
+            "quote": "Radio option has become so unusable because of 'promotional tool for artists'"
+          }
+        ]
+      }
+    ],
+    "opportunities": [
+      {
+        "opportunity": "Intent-Aware Discovery Toggle (Safe vs. Adventurous)",
+        "evidence": [
+          {
+            "quote": "I want to Listen something new but there is no way unless I know a few songs myself."
+          },
+          {
+            "quote": "the “for you” playlists are tired, overplayed"
+          }
+        ],
+        "affectedSegments": [
+          "The Explorer",
+          "The Algorithm Skeptic"
+        ],
+        "businessImpact": "high",
+        "confidence": 0.8,
+        "priority": "p0"
+      },
+      {
+        "opportunity": "True Random Shuffle Mode",
+        "evidence": [
+          {
+            "quote": "Shuffling a playlist isn’t shuffling a playlist when it’s the same songs in the same order"
+          },
+          {
+            "quote": "constantly only here maybe 30 of them"
+          }
+        ],
+        "affectedSegments": [
+          "The Comfort Listener",
+          "The Explorer"
+        ],
+        "businessImpact": "medium",
+        "confidence": 0.9,
+        "priority": "p1"
+      },
+      {
+        "opportunity": "Explicit Genre Blacklisting for AI DJ",
+        "evidence": [
+          {
+            "quote": "The DJ keeps playing Latin music despite me never listening to it and skipping it"
+          }
+        ],
+        "affectedSegments": [
+          "The Comfort Listener",
+          "The Algorithm Skeptic"
+        ],
+        "businessImpact": "medium",
+        "confidence": 0.7,
+        "priority": "p2"
+      }
+    ],
+    "listeningBehaviours": [
+      {
+        "behaviour": "Affinity-Loop Listening",
+        "frequency": 0.6,
+        "contexts": [
+          "Daily commute",
+          "Background work"
+        ],
+        "examples": [
+          {
+            "quote": "Listening to the same 30 songs in a 140 song playlist"
+          }
+        ]
+      },
+      {
+        "behaviour": "Active Exploration",
+        "frequency": 0.2,
+        "contexts": [
+          "Weekend discovery",
+          "Searching for new artists"
+        ],
+        "examples": [
+          {
+            "quote": "Trying to find music that isn't based on history"
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "topProblems": [
+        "Perceived 'fake' shuffle that repeats a small subset of songs.",
+        "Recommendation 'bubbles' that lack novelty and serendipity.",
+        "AI DJ ignoring negative signals (skips)."
+      ],
+      "topOpportunities": [
+        "Implement a 'Novelty Slider' to let users control how 'adventurous' their recommendations are.",
+        "Introduce a 'True Random' shuffle option to restore trust in playlist playback.",
+        "Create an intent-aware discovery framework (e.g., 'I want to discover' vs 'I want my favorites')."
+      ],
+      "biggestRisks": [
+        "Loss of trust in AI-driven features (DJ, Smart Shuffle) as they are perceived as promotional tools.",
+        "Churn of 'Explorers' to platforms with better serendipity (e.g., Apple Music or niche apps)."
+      ],
+      "keyInsights": [
+        "Users are not just complaining about shuffle; they are complaining about the loss of agency over their own curated libraries.",
+        "There is a significant gap between 'Personalized' (based on history) and 'Meaningful' (introducing new, relevant horizons) discovery.",
+        "Free-tier restrictions are not just a monetization lever; they are actively blocking the 'discovery' funnel for a huge segment of users."
+      ]
+    }
+  },
+  "warnings": [
+    "Full ETL dataset: 801 reviews. Token-efficient mode: 80 representative reviews sent to LLM (2 API calls). Programmatic stats cover all 801.",
+    "Final synthesis returned invalid schema; using programmatic merge instead."
+  ],
+  "runId": "2026-07-05T14-27-28-429Z",
+  "savedAt": "2026-07-05T14:27:35.616Z",
+  "meta": {
+    "etl_at": "2026-07-04T13:23:32.317Z",
+    "total_input": 3776,
+    "total_relevant": 801,
+    "excluded": 2975,
+    "sources": {
+      "Play Store": 96,
+      "App Store": 95,
+      "Spotify Community": 4,
+      "Reddit": 606
+    }
+  }
+}
