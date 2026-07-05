@@ -162,12 +162,9 @@ function buildListeningBehaviours(reviews: NormalizedReview[]): ListeningBehavio
     .sort((a, b) => b.frequency - a.frequency);
 }
 
-function topPatternForQuestion(matched: NormalizedReview[], reviews: NormalizedReview[]): GrowthPattern | undefined {
-  const ranked = rankGrowthPatterns(reviews);
-  for (const { pattern } of ranked) {
-    if (matchReviews(matched, pattern.terms).length > 0) return pattern;
-  }
-  return ranked[0]?.pattern;
+function topPatternForQuestion(matched: NormalizedReview[]): GrowthPattern | undefined {
+  if (matched.length === 0) return undefined;
+  return rankGrowthPatterns(matched)[0]?.pattern;
 }
 
 function buildDiscoveryInsights(reviews: NormalizedReview[]): DiscoveryInsight[] {
@@ -180,7 +177,7 @@ function buildDiscoveryInsights(reviews: NormalizedReview[]): DiscoveryInsight[]
       const matched = matchReviews(reviews, terms);
       const count = matched.length;
       const share = total > 0 ? count / total : 0;
-      const topPattern = count > 0 ? topPatternForQuestion(matched, reviews) : undefined;
+      const topPattern = count > 0 ? topPatternForQuestion(matched) : undefined;
       const conf = evidenceConfidence(count, total);
       const impact: "low" | "medium" | "high" = share > 0.15 ? "high" : share > 0.05 ? "medium" : "low";
 

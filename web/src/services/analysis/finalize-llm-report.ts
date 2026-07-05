@@ -1,10 +1,26 @@
-import { evidenceQuotesFromReviews } from "@/lib/evidence-quote";
+import { evidenceQuotesFromReviews, textGist } from "@/lib/evidence-quote";
 import { DISCOVERY_MODULES } from "@/constants/discovery-questions";
 import { buildOfflineReport } from "@/services/analysis/offline-analysis";
 import { hydrateEvidenceQuotes, hydrateReportQuotes } from "@/services/analysis/hydrate-quotes";
 import { matchReviews } from "@/services/analysis/pm-intelligence-narratives";
 import type { DiscoveryInsight, PMReport } from "@/types/analysis";
 import type { NormalizedReview } from "@/types/reviews";
+
+function isGenericFinding(finding: string | undefined): boolean {
+  if (!finding?.trim()) return true;
+  const t = finding.trim().toLowerCase();
+  if (t.startsWith("users repeatedly describe recommendation fatigue")) return true;
+  if (t.length < 50) return true;
+  return false;
+}
+
+function pickFinding(insight: DiscoveryInsight, offline: DiscoveryInsight | undefined): string {
+  const llm = insight.finding?.trim();
+  const off = offline?.finding?.trim();
+  if (llm && !isGenericFinding(llm)) return llm;
+  if (off) return off;
+  return llm ?? "";
+}
 
 const QUESTION_TERMS: Record<string, string[]> = {
   d1: ["discover", "new music", "explore", "find"],
@@ -57,11 +73,17 @@ export function finalizeLlmReport(
       report.discoveryInsights?.length ? report.discoveryInsights : offline.discoveryInsights ?? []
     ).map((insight) => {
       const off = offlineById.get(insight.questionId);
+      const finding = pickFinding(insight, off);
       return {
         ...(off ?? {}),
         ...insight,
-        finding: insight.finding || off?.finding || "",
-        gist: insight.gist || off?.gist,
+        finding,
+        gist: insight.gist || off?.gist || textGist(finding),
+        evidenceCount: insight.evidenceCount || off?.evidenceCount || 0,
+        evidenceSummary:
+          (insight.evidenceSummary?.length ?? 0) > 0
+            ? insight.evidenceSummary
+            : (off?.evidenceSummary ?? []),
         representativeQuotes: mergeInsightQuotes(insight, off, reviews),
       };
     }),

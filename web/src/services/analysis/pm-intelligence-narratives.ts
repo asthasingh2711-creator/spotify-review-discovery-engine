@@ -389,22 +389,78 @@ export function segmentsForPattern(patternId: string, reviews: NormalizedReview[
 const QUESTION_WHY: Record<string, (count: number, pct: number, topPattern?: GrowthPattern) => string> = {
   d1: (c, p, t) =>
     `Users struggle to discover new music because recommendation surfaces optimize for familiarity over novelty. ${c} reviews (${p}%) describe discovery friction — not lack of catalog, but lack of trustworthy pathways.${t ? ` Strongest signal: ${t.label.toLowerCase()}.` : ""}`,
-  d2: (c, p) =>
-    `Barriers are cognitive and algorithmic: users cannot express intent, and the system cannot separate temporary context from long-term taste. ${c} reviews (${p}%) cite limits, mistrust, or stale surfaces.`,
-  d3: (c, p) =>
-    `Repetitive listening is driven by engagement-optimized ranking, not stated preference. ${c} reviews (${p}%) link repeat playback to recommendation loops and weak novelty control.`,
-  d4: (c, p) =>
-    `Recommendation frustration centers on misalignment — wrong mood, wrong moment, wrong genre. ${c} reviews (${p}%) express distrust in the algorithm's understanding of current intent.`,
-  d5: (c, p) =>
-    `Discover Weekly and similar features are trust benchmarks. ${c} reviews (${p}%) compare flagship discovery products; negative sentiment often generalizes to the whole system.`,
-  d6: (c, p) =>
-    `Unmet needs cluster around intent expression, novelty control, and discovery search. ${c} reviews (${p}%) use wish/need language tied to discovery — not billing or crashes.`,
-  r1: (c, p) =>
-    `Root causes are systemic: historical engagement signals overpower session intent. ${c} reviews (${p}%) connect complaints to algorithm behaviour and missing context.`,
-  r2: (c, p) =>
-    `Trust erodes after repeated mismatches — users shift to manual search. ${c} reviews (${p}%) describe broken or useless recommendations.`,
+  d2: (c, p, t) =>
+    `Barriers are cognitive and algorithmic: users cannot express intent, and the system cannot separate temporary context from long-term taste. ${c} reviews (${p}%) cite limits, mistrust, or stale surfaces.${t ? ` Leading barrier: ${t.label.toLowerCase()}.` : ""}`,
+  d3: (c, p, t) =>
+    `Repetitive listening is driven by engagement-optimized ranking, not stated preference. ${c} reviews (${p}%) link repeat playback to recommendation loops and weak novelty control.${t ? ` Primary driver: ${t.label.toLowerCase()}.` : ""}`,
+  d4: (c, p, t) =>
+    `Recommendation frustration centers on misalignment — wrong mood, wrong moment, wrong genre. ${c} reviews (${p}%) express distrust in the algorithm's understanding of current intent.${t ? ` Most cited: ${t.label.toLowerCase()}.` : ""}`,
+  d5: (c, p, t) =>
+    `Discover Weekly and similar features are trust benchmarks. ${c} reviews (${p}%) compare flagship discovery products; negative sentiment often generalizes to the whole system.${t ? ` Feature signal: ${t.label.toLowerCase()}.` : ""}`,
+  d6: (c, p, t) =>
+    `Unmet needs cluster around intent expression, novelty control, and discovery search. ${c} reviews (${p}%) use wish/need language tied to discovery — not billing or crashes.${t ? ` Top unmet need: ${t.growthOpportunity.toLowerCase()}.` : ""}`,
+  b1: (c, p, t) =>
+    `Reviews reveal distinct listening modes: background/focus sessions, mood-driven picks, comfort replay, and active exploration. ${c} reviews (${p}%) describe how people actually use Spotify day-to-day.${t ? ` Dominant behaviour cluster: ${t.label.toLowerCase()}.` : ""}`,
+  b2: (c, p, t) =>
+    `When opening Spotify, users hire the product to match a moment — study focus, workout energy, social vibe, or deliberate discovery — not just replay history. ${c} reviews (${p}%) frame goals in intent language.${t ? ` Most common job: ${t.symptom.toLowerCase()}` : ""}`,
+  b3: (c, p, t) =>
+    `Exploration vs familiarity is situational: users seek new music in exploratory moods but revert to favorites when tired, commuting, or multitasking. ${c} reviews (${p}%) contrast "something new" with "same songs again".${t ? ` Split signal: ${t.label.toLowerCase()}.` : ""}`,
+  b4: (c, p, t) =>
+    `Exploratory listening is triggered by social shares, flagship playlists (Discover Weekly), genre curiosity, and life-context changes — not the home feed alone. ${c} reviews (${p}%) describe what prompted them to branch out.${t ? ` Top trigger: ${t.label.toLowerCase()}.` : ""}`,
+  b5: (c, p, t) =>
+    `Repetitive listening is triggered by algorithm loops, stale home surfaces, comfort habits, and engagement-optimized ranking — not explicit user choice. ${c} reviews (${p}%) tie repeat playback to system behaviour.${t ? ` Primary loop: ${t.label.toLowerCase()}.` : ""}`,
+  b6: (c, p, t) =>
+    `Context (study, gym, commute, sleep, party) strongly shapes whether users want discovery or familiarity. ${c} reviews (${p}%) link listening context to recommendation fit.${t ? ` Context theme: ${t.label.toLowerCase()}.` : ""}`,
+  s1: (c, p, t) =>
+    `Natural segments include Explorers, Comfort Listeners, Mood-driven users, Algorithm Skeptics, and Free-tier constrained listeners. ${c} reviews (${p}%) map to identifiable personas with different discovery needs.${t ? ` Strongest segment signal: ${t.label.toLowerCase()}.` : ""}`,
+  s2: (c, p, t) =>
+    `Explorers and Algorithm Skeptics struggle most — they want novelty but report broken or stale recommendation pathways. ${c} reviews (${p}%) from high-intent discovery users express the sharpest friction.${t ? ` Segment pain: ${t.label.toLowerCase()}.` : ""}`,
+  s3: (c, p, t) =>
+    `Unmet needs concentrate among users who think in moods and contexts, not artist names — they want intent-aware discovery. ${c} reviews (${p}%) use wish/need language for features Spotify lacks.${t ? ` Unmet need: ${t.growthOpportunity.toLowerCase()}.` : ""}`,
+  s4: (c, p, t) =>
+    `Free-tier users face shuffle and skip limits that block intentional exploration; Premium users complain about algorithm quality, not paywalls. ${c} reviews (${p}%) show divergent discovery constraints by tier.${t ? ` Tier split: ${t.label.toLowerCase()}.` : ""}`,
+  s5: (c, p, t) =>
+    `Users stop exploring when recommendations feel repetitive, irrelevant, or untrustworthy — they disengage from algorithmic surfaces. ${c} reviews (${p}%) link exploration drop-off to recommendation fatigue.${t ? ` Churn signal: ${t.label.toLowerCase()}.` : ""}`,
+  j1: (c, p, t) =>
+    `Fundamentally users want the right music for the right moment — discovery, comfort, focus, or social sharing — without fighting the product. ${c} reviews (${p}%) describe outcome-oriented jobs, not feature requests.${t ? ` Core job: ${t.symptom.toLowerCase()}` : ""}`,
+  j2: (c, p, t) =>
+    `Discovery JTBD cluster around finding new artists, breaking filter bubbles, matching mood/context, and regaining trust in recommendations. ${c} reviews (${p}%) frame discovery as a job-to-be-done.${t ? ` Top JTBD: ${t.label.toLowerCase()}.` : ""}`,
+  j3: (c, p, t) =>
+    `Underserved jobs include mood-native search, session-scoped recommendations, and exploration without permanently altering taste profiles. ${c} reviews (${p}%) describe jobs Spotify partially fails today.${t ? ` Gap: ${t.growthOpportunity.toLowerCase()}.` : ""}`,
+  p1: (c, p, t) =>
+    `Discovery pain points are algorithmic misalignment, stale feeds, repetitive loops, and inability to express intent — not missing catalog. ${c} reviews (${p}%) block successful discovery.${t ? ` Top blocker: ${t.label.toLowerCase()}.` : ""}`,
+  p2: (c, p, t) =>
+    `Highest frustration comes from feeling the algorithm "doesn't know me" after repeated wrong recommendations. ${c} reviews (${p}%) use strong negative language about trust breakdown.${t ? ` Frustration theme: ${t.label.toLowerCase()}.` : ""}`,
+  r1: (c, p, t) =>
+    `Root causes are systemic: historical engagement signals overpower session intent. ${c} reviews (${p}%) connect complaints to algorithm behaviour and missing context.${t ? ` Underlying cause: ${t.aiInterpretation.split(".")[0]}.` : ""}`,
+  r2: (c, p, t) =>
+    `Trust erodes after repeated mismatches — users shift to manual search or abandon algorithmic surfaces. ${c} reviews (${p}%) describe broken or useless recommendations.${t ? ` Trust break: ${t.label.toLowerCase()}.` : ""}`,
+  r3: (c, p, t) =>
+    `Exploration stops when novelty feels risky (permanent taste pollution) or when recommendations keep replaying the same pool. ${c} reviews (${p}%) explain why users give up on discovering.${t ? ` Driver: ${t.label.toLowerCase()}.` : ""}`,
+  r4: (c, p, t) =>
+    `Shuffle limits and UI friction are symptoms; the underlying cause is weak intent modelling and engagement-optimized ranking. ${c} reviews (${p}%) mix surface complaints with deeper algorithm issues.${t ? ` Symptom vs cause: ${t.label.toLowerCase()}.` : ""}`,
+  r5: (c, p, t) =>
+    `Most high-impact issues are algorithmic (intent, novelty, trust) rather than pure UX polish — though opaque controls amplify distrust. ${c} reviews (${p}%) attribute problems to the recommender.${t ? ` Algorithmic share: ${t.label.toLowerCase()}.` : ""}`,
+  o1: (c, p, t) =>
+    `Consistent unmet needs: intent-aware recs, novelty controls, mood search, and ephemeral listening modes. ${c} reviews (${p}%) repeat the same opportunity themes.${t ? ` Opportunity: ${t.growthOpportunity.toLowerCase()}.` : ""}`,
+  o2: (c, p, t) =>
+    `Growth-aligned opportunities focus on meaningful discovery depth — not monetization mechanics alone. ${c} reviews (${p}%) tie product gaps to exploratory engagement.${t ? ` Growth lever: ${t.growthOpportunity.toLowerCase()}.` : ""}`,
+  o3: (c, p, t) =>
+    `AI uniquely enables mood/scene search, session intent inference, and explain-why recommendations where collaborative filtering fails. ${c} reviews (${p}%) imply AI-native solutions.${t ? ` AI wedge: ${t.growthOpportunity.toLowerCase()}.` : ""}`,
+  o4: (c, p, t) =>
+    `Meaningful discovery improves when users get trustworthy novelty without losing comfort listening. ${c} reviews (${p}%) prioritize discovery quality over catalog size.${t ? ` Impact area: ${t.label.toLowerCase()}.` : ""}`,
+  o5: (c, p, t) =>
+    `Cross-platform comparisons (Apple Music, YouTube Music) appear when Spotify discovery feels stale — users benchmark alternative discovery experiences. ${c} reviews (${p}%) reference competitors in discovery context.${t ? ` Competitive signal: ${t.label.toLowerCase()}.` : ""}`,
+  bi1: (c, p, t) =>
+    `Engagement drops when discovery surfaces feel stale or repetitive — users describe boredom and reduced exploratory sessions. ${c} reviews (${p}%) link discovery failure to disengagement.${t ? ` Engagement risk: ${t.label.toLowerCase()}.` : ""}`,
+  bi2: (c, p, t) =>
+    `Repetitive listening increases when novelty controls are absent and the algorithm optimizes for familiar engagement. ${c} reviews (${p}%) describe reinforcement loops.${t ? ` Loop driver: ${t.label.toLowerCase()}.` : ""}`,
+  bi3: (c, p, t) =>
+    `Retention risk concentrates among Algorithm Skeptics and Explorers who lose trust in recommendations. ${c} reviews (${p}%) mention canceling, deleting, or switching apps.${t ? ` Retention threat: ${t.label.toLowerCase()}.` : ""}`,
   bi4: (c, p) =>
     `Highest-impact Growth opportunities are intent-aware recommendations and AI discovery search — not queue or shuffle mechanics. ${c} reviews (${p}%) tie discovery quality to continued engagement.`,
+  bi5: (c, p, t) =>
+    `Growth Team should prioritize intent modelling, novelty controls, and discovery search over playback mechanics. ${c} reviews (${p}%) rank recommendation quality above minor UX fixes.${t ? ` Priority theme: ${t.label.toLowerCase()}.` : ""}`,
 };
 
 export function buildInsightFinding(

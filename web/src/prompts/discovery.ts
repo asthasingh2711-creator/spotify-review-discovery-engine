@@ -54,12 +54,18 @@ ${QUOTE_SCHEMA_INSTRUCTION}
 
 Return JSON with ONLY:
 - sentiment (percentages 0-100 for positive/neutral/negative)
-- discoveryInsights: answer EVERY question below with questionId, finding, rootCause, aiOpportunity, worthSolvingRationale
+- discoveryInsights: answer EVERY question below — one unique insight per questionId
 - executiveSummary
 - pmRecommendations
 - summary
 
-Each discoveryInsight must include 2 representativeQuotes as objects with verbatim quote + url copied from review data.
+CRITICAL for discoveryInsights:
+- Each questionId gets a DISTINCT finding that directly answers THAT question (never copy-paste the same sentence).
+- finding = PM insight for the specific question; rootCause = underlying why (may differ from finding).
+- Do NOT reuse generic recommendation-fatigue boilerplate across questions.
+- Include evidenceCount (approximate mention count) and 2 representativeQuotes (verbatim + url).
+
+Each discoveryInsight fields: questionId, question, finding, rootCause, aiOpportunity, evidenceCount, worthSolving, worthSolvingRationale, representativeQuotes.
 
 ${modules}`;
 }

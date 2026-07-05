@@ -24,27 +24,48 @@ function isAcrossIntro(text: string): boolean {
   return /^Across \d+ reviews/i.test(text.trim()) || /patterns consistent with/i.test(text);
 }
 
-/** Card headline — never starts with "Across N reviews…" */
+function isBoilerplateRootCause(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  return (
+    t.startsWith("users repeatedly describe recommendation fatigue") ||
+    t.startsWith("repetitive listening is often a symptom") ||
+    t.startsWith("the home feed appears optimized")
+  );
+}
+
+/** Card headline — question-specific; never reuse generic root-cause copy across tiles. */
 function insightCardTitle(insight: DiscoveryInsight): string {
-  const candidates = [
-    insight.gist,
-    insight.finding,
-    insight.rootCause,
-    insight.inferredBehaviour,
-    insight.aiOpportunity,
-  ];
-
-  for (const c of candidates) {
-    if (!c || isAcrossIntro(c)) continue;
-    return firstSentence(c);
+  if (insight.gist?.trim() && !isBoilerplateRootCause(insight.gist)) {
+    return firstSentence(insight.gist);
   }
 
-  const theme = insight.finding?.match(/Primary theme: ([^.]+)/i)?.[1];
-  if (theme) {
-    return `Users repeatedly report ${theme.toLowerCase()} as a discovery pain point.`;
+  const finding = insight.finding?.trim();
+  if (finding && !isBoilerplateRootCause(finding)) {
+    if (isAcrossIntro(finding)) {
+      const theme = finding.match(/Primary theme: ([^.]+)/i)?.[1]
+        ?? finding.match(/Strongest signal: ([^.]+)/i)?.[1]
+        ?? finding.match(/Top theme: ([^.]+)/i)?.[1]
+        ?? finding.match(/Dominant behaviour cluster: ([^.]+)/i)?.[1]
+        ?? finding.match(/Leading barrier: ([^.]+)/i)?.[1];
+      if (theme) {
+        return `${theme.charAt(0).toUpperCase() + theme.slice(1)} — recurring in ${insight.evidenceCount.toLocaleString()} reviews.`;
+      }
+      const cleaned = finding
+        .replace(/^Across [\d,]+ reviews \(\d+% of the discovery dataset\),?\s*/i, "")
+        .replace(/users describe patterns consistent with "[^"]+"\.\s*/i, "")
+        .trim();
+      if (cleaned.length > 40) return firstSentence(cleaned);
+    } else {
+      return firstSentence(finding);
+    }
   }
+
   if (insight.evidenceSummary[0]) {
-    return `A dominant theme is ${insight.evidenceSummary[0].toLowerCase()}.`;
+    return `${insight.evidenceSummary[0]} — ${insight.evidenceCount.toLocaleString()} mentions in reviews answering this question.`;
+  }
+
+  if (insight.inferredBehaviour && !isBoilerplateRootCause(insight.inferredBehaviour)) {
+    return firstSentence(insight.inferredBehaviour);
   }
 
   return firstSentence(insight.question.replace(/\?$/, "."));
