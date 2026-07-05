@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -994,13 +993,6 @@ npm run dev`}
               Model: <span className="text-foreground/80">{config.model}</span>
             </div>
           )}
-
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
-            Pipeline: <code className="text-foreground">reviews_discovery.json</code> (801 reviews, programmatic stats) → 2 API calls (80-review sample + synthesis) →{" "}
-            <code className="text-foreground">analysis.json</code>
-          </div>
-
-          <Separator />
 
           {(isAnalyzing || progressMessage) && (
             <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-foreground">
