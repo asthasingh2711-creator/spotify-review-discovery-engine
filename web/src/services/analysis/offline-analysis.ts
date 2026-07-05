@@ -359,11 +359,15 @@ export function runOfflineAnalysis(
   opts.onProgress?.("Building themes, personas, and executive summary...");
   const report = buildOfflineReport(cleaned, overview);
 
+  const retryHint = opts.reason?.toLowerCase().includes("quota")
+    ? "Re-run when LLM quota resets."
+    : "Click Analyze again to retry AI extraction.";
+
   const warnings = [
     `Product Intelligence synthesized from all ${cleaned.length} discovery-relevant reviews.`,
     opts.reason
-      ? `${opts.reason} — report generated via evidence-weighted narrative engine (no AI). Re-run when LLM quota resets.`
-      : "LLM unavailable — report generated via evidence-weighted narrative engine (no AI). Re-run when API quota resets for AI-generated insights.",
+      ? `${opts.reason} — report generated via evidence-weighted narrative engine (no AI). ${retryHint}`
+      : `LLM unavailable — report generated via evidence-weighted narrative engine (no AI). Re-run when API quota resets for AI-generated insights.`,
   ];
 
   return { report, warnings };

@@ -12,8 +12,9 @@ export type LlmProvider = "gemini" | "cerebras";
 
 export function getAvailableProviders(): LlmProvider[] {
   const out: LlmProvider[] = [];
-  if (process.env.GEMINI_API_KEY?.trim()) out.push("gemini");
+  // Cerebras first — reliable strict JSON on this pipeline; Gemini as fallback when quota allows.
   if (process.env.CEREBRAS_API_KEY?.trim()) out.push("cerebras");
+  if (process.env.GEMINI_API_KEY?.trim()) out.push("gemini");
   return out;
 }
 

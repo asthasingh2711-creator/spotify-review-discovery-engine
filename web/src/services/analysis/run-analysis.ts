@@ -61,14 +61,27 @@ function buildSynthesisInput(
 function parseBatchReport(
   text: string,
   opts: { sentimentFallback?: { positive: number; neutral: number; negative: number } } = {},
-) {
+): { ok: true; data: BatchReport; lenient?: boolean } | { ok: false; detail: string } {
+  if (!text.trim()) return { ok: false, detail: "empty LLM response" };
+
   const extractionJson = safeJsonParse(text);
-  if (!extractionJson) return null;
+  if (!extractionJson) return { ok: false, detail: "response was not valid JSON" };
 
   const normalized = normalizeBatchReport(extractionJson, opts);
-  if (!normalized) return null;
+  if (!normalized) return { ok: false, detail: "could not normalize LLM output" };
 
-  return BatchReportSchema.safeParse(normalized);
+  const parsed = BatchReportSchema.safeParse(normalized);
+  if (parsed.success) return { ok: true, data: parsed.data };
+
+  // Accept normalized extraction when core fields exist (quote objects often fail strict zod).
+  if (normalized.sentiment && Array.isArray(normalized.themes)) {
+    return { ok: true, data: normalized as BatchReport, lenient: true };
+  }
+
+  return {
+    ok: false,
+    detail: parsed.error.issues[0]?.message ?? "schema validation failed",
+  };
 }
 
 function mergeSynthesisWithExtraction(
@@ -170,7 +183,6 @@ async function runLlmAnalysis(
   const { onProgress, runId, scope, totalLoaded } = ctx;
   const warnings: string[] = [];
   const providers = getAvailableProviders();
-  const primaryProvider = providers[0] ?? "gemini";
 
   const programmatic = buildProgrammaticStats(cleaned);
   const sentimentFallback = {
@@ -190,7 +202,7 @@ async function runLlmAnalysis(
 
   const sampleText = sample.map((r) => reviewsToText(r, BODY_CHARS)).join("\n---\n");
 
-  const extraction = await callLlmWithRetry(
+  let extraction = await callLlmWithRetry(
     [
       { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
       {
@@ -199,30 +211,49 @@ async function runLlmAnalysis(
       },
     ],
     {
-      maxCompletionTokens: 4096,
+      maxCompletionTokens: 8192,
       temperature: 0.15,
       reasoningEffort: "low",
       responseFormat: EXTRACTION_RESPONSE_FORMAT,
     },
   );
 
-  if (extraction.provider !== primaryProvider) {
+  let extractionParsed = parseBatchReport(extraction.text, { sentimentFallback });
+
+  if (!extractionParsed.ok) {
     warnings.push(
-      `${primaryProvider} quota limit hit — call 1 used ${extraction.provider} (${getActiveModelName(extraction.provider)}).`,
+      `Call 1 strict schema failed (${extractionParsed.detail}) — retrying with relaxed JSON mode...`,
     );
+    extraction = await callLlmWithRetry(
+      [
+        { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `${DISCOVERY_CHUNK_PROMPT}\n\nRepresentative sample (${sample.length} of ${cleaned.length} reviews):\n${sampleText}`,
+        },
+      ],
+      {
+        maxCompletionTokens: 8192,
+        temperature: 0.15,
+        reasoningEffort: "low",
+        responseFormat: { type: "json_object" },
+      },
+    );
+    extractionParsed = parseBatchReport(extraction.text, { sentimentFallback });
   }
 
-  const extractionParsed = parseBatchReport(extraction.text, { sentimentFallback });
+  if (extractionParsed.ok && extractionParsed.lenient) {
+    warnings.push("Call 1 extraction used lenient schema coercions (quotes and arrays normalized).");
+  }
 
-  if (!extractionParsed?.success) {
-    const detail = extractionParsed?.error?.issues?.[0]?.message ?? "invalid JSON schema";
+  if (!extractionParsed.ok) {
     warnings.push(
-      `Call 1 extraction returned invalid JSON (${detail}). Falling back to offline analysis with full quoted evidence.`,
+      `Call 1 extraction failed (${extractionParsed.detail}). Falling back to offline analysis with full quoted evidence.`,
     );
     const { report, warnings: offlineWarnings } = runOfflineAnalysis(cleaned, {
       totalLoaded,
       onProgress: (message) => onProgress?.({ type: "status", message }),
-      reason: `Call 1 (${extraction.provider}) returned invalid JSON`,
+      reason: `Call 1 (${extraction.provider}) returned unparseable JSON`,
     });
     const out: AnalyzeResponse = { report, warnings: [...warnings, ...offlineWarnings], scope };
     onProgress?.({ type: "done", data: out, runId });
@@ -246,7 +277,7 @@ async function runLlmAnalysis(
   onProgress?.({ type: "chunk", current: 2, total: 2, message: "Synthesizing PM intelligence..." });
 
   const synthesisInput = buildSynthesisInput(aggregated, overview, programmatic);
-  const synthesis = await callLlmWithRetry(
+  let synthesis = await callLlmWithRetry(
     [
       { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
       {
@@ -268,17 +299,42 @@ async function runLlmAnalysis(
     );
   }
 
-  const synthesisParsed = parseBatchReport(synthesis.text, { sentimentFallback });
-  const synthesisOk = synthesisParsed?.success === true;
+  let synthesisParsed = parseBatchReport(synthesis.text, { sentimentFallback });
+
+  if (!synthesisParsed.ok) {
+    warnings.push(
+      `Call 2 strict schema failed (${synthesisParsed.detail}) — retrying with relaxed JSON mode...`,
+    );
+    synthesis = await callLlmWithRetry(
+      [
+        { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `${buildDiscoverySynthesisPrompt()}\n\nData (programmatic stats + call-1 extraction):\n${JSON.stringify(synthesisInput)}`,
+        },
+      ],
+      {
+        maxCompletionTokens: 8192,
+        temperature: 0.2,
+        reasoningEffort: "low",
+        responseFormat: { type: "json_object" },
+      },
+    );
+    synthesisParsed = parseBatchReport(synthesis.text, { sentimentFallback });
+  }
+
+  const synthesisOk = synthesisParsed.ok;
 
   let baseReport: PMReport;
   if (synthesisOk) {
     baseReport = mergeSynthesisWithExtraction(overview, aggregated, synthesisParsed.data);
+    if (synthesisParsed.lenient) {
+      warnings.push("Call 2 synthesis used lenient schema coercions.");
+    }
   } else {
     baseReport = { ...aggregated, overview } as PMReport;
-    const detail = synthesisParsed?.error?.issues?.[0]?.message ?? "schema validation failed";
     warnings.push(
-      `PM synthesis call returned invalid JSON (${detail}). Using call-1 extraction + offline PM modules with full quoted evidence.`,
+      `PM synthesis returned invalid JSON (${synthesisParsed.detail}). Using call-1 extraction + offline PM modules with full quoted evidence.`,
     );
   }
 
