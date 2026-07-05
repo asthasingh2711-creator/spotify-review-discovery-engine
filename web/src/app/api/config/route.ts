@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
+import { getActiveModelName, getLlmProvider, isLlmConfigured } from "@/services/llm/provider";
 
 export const runtime = "nodejs";
 
 export async function GET() {
+  const provider = getLlmProvider();
   return NextResponse.json({
     ok: true,
-    cerebrasConfigured: Boolean(process.env.CEREBRAS_API_KEY?.trim()),
+    llmConfigured: isLlmConfigured(),
+    llmProvider: provider,
+    cerebrasConfigured: isLlmConfigured(),
     refreshAvailable: !process.env.VERCEL,
-    model: process.env.CEREBRAS_MODEL || "gemma-4-31b",
+    model: getActiveModelName() ?? "not configured",
   });
 }

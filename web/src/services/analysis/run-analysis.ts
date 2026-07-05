@@ -3,11 +3,11 @@ import {
   DISCOVERY_CHUNK_PROMPT,
   buildDiscoverySynthesisPrompt,
 } from "@/prompts/discovery";
-import { getCerebrasClient, getCerebrasModel } from "@/services/cerebras/client";
 import { aggregateBatches } from "@/services/analysis/aggregate";
 import { BatchReportSchema, type BatchReport } from "@/services/analysis/batch-schema";
 import { reviewsToText } from "@/services/analysis/chunk";
-import { callChatWithRetry, safeJsonParse, LlmQuotaError } from "@/services/analysis/llm";
+import { safeJsonParse, LlmQuotaError } from "@/services/analysis/llm";
+import { callLlmWithRetry, getActiveModelName, getLlmProvider } from "@/services/llm/provider";
 import { buildProgrammaticStats } from "@/services/analysis/programmatic-stats";
 import { EXTRACTION_RESPONSE_FORMAT } from "@/services/analysis/extraction-schema";
 import { normalizeBatchReport } from "@/services/analysis/normalize-batch";
@@ -168,8 +168,8 @@ async function runLlmAnalysis(
 ): Promise<AnalyzeResponse & { runId: string }> {
   const { onProgress, runId, scope, totalLoaded } = ctx;
   const warnings: string[] = [];
-  const model = getCerebrasModel();
-  const client = getCerebrasClient();
+  const provider = getLlmProvider() ?? "gemini";
+  const model = getActiveModelName() ?? "gemini-2.0-flash";
 
   const programmatic = buildProgrammaticStats(cleaned);
   const sentimentFallback = {
@@ -181,7 +181,7 @@ async function runLlmAnalysis(
 
   onProgress?.({
     type: "status",
-    message: `Exactly 2 API calls: sample ${sample.length}/${cleaned.length} reviews → extract + synthesize. Quotes hydrated from full corpus.`,
+    message: `Exactly 2 ${provider} API calls (${model}): sample ${sample.length}/${cleaned.length} reviews → extract + synthesize.`,
   });
 
   onProgress?.({ type: "status", message: `Call 1/2 — extracting patterns...` });
@@ -189,9 +189,7 @@ async function runLlmAnalysis(
 
   const sampleText = sample.map((r) => reviewsToText(r, BODY_CHARS)).join("\n---\n");
 
-  const extractionText = await callChatWithRetry(
-    client,
-    model,
+  const extractionText = await callLlmWithRetry(
     [
       { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
       {
@@ -240,9 +238,7 @@ async function runLlmAnalysis(
   onProgress?.({ type: "chunk", current: 2, total: 2, message: "Synthesizing PM intelligence..." });
 
   const synthesisInput = buildSynthesisInput(aggregated, overview, programmatic);
-  const synthesisText = await callChatWithRetry(
-    client,
-    model,
+  const synthesisText = await callLlmWithRetry(
     [
       { role: "system", content: PM_AGENT_SYSTEM_PROMPT },
       {

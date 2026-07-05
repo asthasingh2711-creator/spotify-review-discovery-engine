@@ -1,4 +1,5 @@
 import Cerebras from "@cerebras/cerebras_cloud_sdk";
+import { getGeminiClient, getGeminiModel } from "@/services/gemini/client";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -55,7 +56,7 @@ function isTransientRateLimit(err: unknown): boolean {
 export function formatLlmError(err: unknown): string {
   if (err instanceof LlmQuotaError) return err.message;
   if (isDailyQuotaError(err)) {
-    return "Cerebras daily token limit reached. Analysis uses only 2 API calls now — try again tomorrow, or load a previously saved report from the Dashboard.";
+    return "Daily LLM token limit reached. Analysis uses only 2 API calls — try again tomorrow, or load a previously saved report from the Dashboard.";
   }
   if (err instanceof Error) return err.message;
   return "Unknown AI error";
@@ -85,6 +86,48 @@ export async function callChatWithRetry(
       return resp.choices?.[0]?.message?.content ?? "";
     } catch (err) {
       if (isDailyQuotaError(err)) {
+        throw new LlmQuotaError(formatLlmError(err));
+      }
+      attempt++;
+      if (!isTransientRateLimit(err) || attempt >= maxAttempts) throw err;
+      const backoff = Math.min(30_000, interRequestDelayMs() * 2 ** attempt);
+      await sleep(backoff);
+    }
+  }
+}
+
+function schemaHint(opts: LlmCallOptions): string {
+  if (opts.responseFormat?.type !== "json_schema") return "";
+  const schema = opts.responseFormat.json_schema.schema;
+  return `\n\nReturn JSON only (no markdown), matching this schema:\n${JSON.stringify(schema)}`;
+}
+
+export async function callGeminiWithRetry(messages: ChatMessage[], opts: LlmCallOptions = {}): Promise<string> {
+  const maxAttempts = 4;
+  let attempt = 0;
+  const system = messages.find((m) => m.role === "system")?.content ?? "";
+  const conversation = messages
+    .filter((m) => m.role !== "system")
+    .map((m) => `${m.role === "assistant" ? "Assistant" : "User"}: ${m.content}`)
+    .join("\n\n");
+  const userText = `${conversation}${schemaHint(opts)}`.trim();
+
+  while (true) {
+    try {
+      const model = getGeminiClient().getGenerativeModel({
+        model: getGeminiModel(),
+        systemInstruction: system || undefined,
+        generationConfig: {
+          temperature: opts.temperature ?? 0.2,
+          maxOutputTokens: opts.maxCompletionTokens ?? 8192,
+          responseMimeType: "application/json",
+        },
+      });
+      const result = await model.generateContent(userText);
+      return result.response.text();
+    } catch (err) {
+      const msg = String((err as { message?: string })?.message ?? "").toLowerCase();
+      if (msg.includes("quota") || msg.includes("resource exhausted")) {
         throw new LlmQuotaError(formatLlmError(err));
       }
       attempt++;
