@@ -182,7 +182,11 @@ export function Dashboard() {
 
   async function analyze() {
     if (!config?.cerebrasConfigured) {
-      toast.error("Set CEREBRAS_API_KEY in web/.env.local, then restart the dev server.");
+      toast.error(
+        config?.refreshAvailable === false
+          ? "Add CEREBRAS_API_KEY in Vercel project settings, then redeploy."
+          : "Set CEREBRAS_API_KEY in web/.env.local, then restart the dev server.",
+      );
       setSection("agent");
       return;
     }
@@ -956,16 +960,32 @@ function AgentSection({
           {!config?.cerebrasConfigured && (
             <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 space-y-2">
               <div className="text-sm font-medium">Cerebras API key required</div>
-              <div className="text-sm text-muted-foreground">
-                Create <code className="px-1">web/.env.local</code> with your key, then restart the dev server:
-              </div>
-              <pre className="rounded-md border border-border bg-muted/30 p-3 text-xs overflow-x-auto">
+              {config?.refreshAvailable === false ? (
+                <>
+                  <div className="text-sm text-muted-foreground">
+                    Add <code className="px-1">CEREBRAS_API_KEY</code> in your Vercel project, then redeploy:
+                  </div>
+                  <pre className="rounded-md border border-border bg-muted/30 p-3 text-xs overflow-x-auto">
+{`Vercel Dashboard → spotify-discovery-dashboard
+→ Settings → Environment Variables
+→ CEREBRAS_API_KEY = csk-...
+→ Redeploy`}
+                  </pre>
+                </>
+              ) : (
+                <>
+                  <div className="text-sm text-muted-foreground">
+                    Create <code className="px-1">web/.env.local</code> with your key, then restart the dev server:
+                  </div>
+                  <pre className="rounded-md border border-border bg-muted/30 p-3 text-xs overflow-x-auto">
 {`cd web
 cp .env.example .env.local
 # edit .env.local:
 CEREBRAS_API_KEY=csk-...
 npm run dev`}
-              </pre>
+                  </pre>
+                </>
+              )}
             </div>
           )}
 
