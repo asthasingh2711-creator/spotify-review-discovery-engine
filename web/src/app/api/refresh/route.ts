@@ -15,7 +15,7 @@ import {
 } from "@/lib/dataset";
 
 export const runtime = "nodejs";
-export const maxDuration = 600;
+export const maxDuration = 300;
 
 const execFileAsync = promisify(execFile);
 

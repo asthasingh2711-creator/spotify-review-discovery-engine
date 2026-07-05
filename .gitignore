@@ -30,3 +30,5 @@ data/analysis/intermediate/
 
 # Bundled at build time from ../data (see web/scripts/sync-data.mjs)
 web/data/
+.vercel
+.env*

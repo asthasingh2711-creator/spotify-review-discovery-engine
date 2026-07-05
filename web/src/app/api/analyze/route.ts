@@ -4,7 +4,7 @@ import { runAnalysis, type AnalysisProgressEvent } from "@/services/analysis/run
 import { formatLlmError } from "@/services/analysis/llm";
 
 export const runtime = "nodejs";
-export const maxDuration = 600;
+export const maxDuration = 300;
 
 function sseEncode(event: AnalysisProgressEvent | Record<string, unknown>) {
   return `data: ${JSON.stringify(event)}\n\n`;
